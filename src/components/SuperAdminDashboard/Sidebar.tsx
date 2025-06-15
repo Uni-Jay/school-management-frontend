@@ -154,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({ navItems: propsNavItems }) => {
                   <button
                     onClick={() => toggleMenu(item.label)}
                     className={`flex items-center w-full px-3 py-2 rounded hover:bg-gray-600 ${
-                      active ? "bg-gray-200 font-semibold" : ""
+                      active ? " font-semibold" : ""
                     }`}
                   >
                     <span className={`mr-2 ${collapsed ? "" : "inline"}`}>{item.icon}</span>
@@ -208,7 +208,7 @@ const Sidebar: React.FC<SidebarProps> = ({ navItems: propsNavItems }) => {
                     to={item.path!}
                     className={({ isActive }) =>
                       `flex items-center px-3 py-2 rounded hover:bg-gray-600 ${
-                        isActive ? "bg-gray-200 font-semibold" : ""
+                        isActive ? " font-semibold" : ""
                       }`
                     }
                   >

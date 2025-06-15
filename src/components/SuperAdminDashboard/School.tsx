@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../utils/api'; // Axios instance
+import api from '../../utils/api';
 import Modal from '../Modal';
-import { Pencil, Trash2, Check, Plus } from 'lucide-react';
+import { Pencil, Trash2, Check, Plus, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 interface School {
@@ -23,8 +23,10 @@ const SchoolManagement: React.FC = () => {
   const [schools, setSchools] = useState<School[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [editModeId, setEditModeId] = useState<number | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [search, setSearch] = useState('');
   const [activeOnly, setActiveOnly] = useState(true);
   const [page, setPage] = useState(1);
@@ -33,12 +35,17 @@ const SchoolManagement: React.FC = () => {
   const fetchSchools = async () => {
     try {
       const res = await api.get('/schools');
-      let filtered = activeOnly ? res.data.filter((s: School) => s.isActive) : res.data;
+      let filtered = res.data;
+
       if (search) {
         filtered = filtered.filter((s: School) =>
           s.name.toLowerCase().includes(search.toLowerCase())
         );
       }
+      if (activeOnly) {
+        filtered = filtered.filter((s: School) => s.isActive);
+      }
+
       setSchools(filtered);
     } catch (error) {
       console.error(error);
@@ -95,6 +102,7 @@ const SchoolManagement: React.FC = () => {
       toast.success('School updated');
       setEditModeId(null);
       setFormData({});
+      setEditModalOpen(false);
       fetchSchools();
     } catch (error) {
       console.error(error);
@@ -108,6 +116,11 @@ const SchoolManagement: React.FC = () => {
     fetchSchools();
   };
 
+  const handleView = (school: School) => {
+    setSelectedSchool(school);
+    setViewModalOpen(true);
+  };
+
   const paginated = schools.slice((page - 1) * limit, page * limit);
   const pageCount = Math.ceil(schools.length / limit);
 
@@ -115,7 +128,10 @@ const SchoolManagement: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold">School Management</h1>
-        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+        >
           <Plus size={18} /> Add School
         </button>
       </div>
@@ -168,6 +184,9 @@ const SchoolManagement: React.FC = () => {
               <td className="p-3">{school.phone}</td>
               <td className="p-3">{school.website}</td>
               <td className="p-3 text-right space-x-2">
+                <button onClick={() => handleView(school)} className="text-indigo-600">
+                  <Eye size={18} />
+                </button>
                 <button onClick={() => handleEdit(school)} className="text-blue-600">
                   <Pencil size={18} />
                 </button>
@@ -183,7 +202,7 @@ const SchoolManagement: React.FC = () => {
         </tbody>
       </table>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
         <span>
           Page {page} of {pageCount}
@@ -206,6 +225,8 @@ const SchoolManagement: React.FC = () => {
         </div>
       </div>
 
+      {/* Add, Edit, View modals here */}
+      {/* ✅ You already implemented them well, no issues there */}
       {/* Add Modal */}
       {showAddModal && (
         <Modal onClose={() => setShowAddModal(false)}>
@@ -345,6 +366,46 @@ const SchoolManagement: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* View Modal */}
+      {viewModalOpen && selectedSchool && (
+  <Modal onClose={() => setViewModalOpen(false)}>
+    <div className="p-4 space-y-4">
+      <h2 className="text-lg font-bold mb-2">View School</h2>
+      <div className="space-y-2">
+        {selectedSchool.logo_url && (
+          <img
+            src={`http://localhost:8000/uploads/schools/${selectedSchool.logo_url}`}
+            className="w-16 h-16 object-cover rounded"
+            alt="School Logo"
+          />
+        )}
+        <div><strong>Name:</strong> {selectedSchool.name}</div>
+        <div><strong>Type:</strong> {selectedSchool.type}</div>
+        <div><strong>Email:</strong> {selectedSchool.contact_email}</div>
+        <div><strong>Phone:</strong> {selectedSchool.phone}</div>
+        <div><strong>Website:</strong> {selectedSchool.website}</div>
+        <div><strong>Address:</strong> {selectedSchool.address}</div>
+        <div><strong>Year:</strong> {selectedSchool.established_year}</div>
+        <div><strong>Status:</strong> {selectedSchool.isActive ? 'Active' : 'Inactive'}</div>
+        <div><strong>Description:</strong> {selectedSchool.description}</div>
+      </div>
+
+      <div className="flex justify-end mt-4">
+        <button
+          onClick={() => setViewModalOpen(false)}
+          className="px-4 py-2 bg-gray-600 text-white rounded"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </Modal>
+)}
+
+
+
+
     </div>
   );
 };
