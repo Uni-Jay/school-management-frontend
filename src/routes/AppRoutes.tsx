@@ -1,32 +1,27 @@
-// import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import SuperAdminLayout from "../pages/SuperAdminLayout";
+
+// Super Admin Dashboard Pages
 import Dashboard from "../components/SuperAdminDashboard/Dashboard";
 import AnnouncementsPage from "../components/SuperAdminDashboard/Announcement";
-
-// Import your page components for each route here:
-// import Dashboard from "./pages/super_admin/Dashboard";
-// import Schools from "./pages/super_admin/Schools";
-// import Parents from "./pages/super_admin/Parents";
-// import Teachers from "./pages/super_admin/Teachers";
-// import Students from "./pages/super_admin/Students";
-// import Staff from "./pages/super_admin/Staff";
-// import Admins from "./pages/super_admin/Admins";
-// import Subjects from "./pages/super_admin/Subjects";
-// import Classes from "./pages/super_admin/Classes";
-// ... import other pages similarly
+import SchoolPage from "../components/SuperAdminDashboard/School";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Redirect base path to /super-admin */}
       <Route path="/" element={<Navigate to="/super-admin" replace />} />
 
+      {/* Super Admin Layout (Navbar + Sidebar + Nested Pages) */}
       <Route path="/super-admin" element={<SuperAdminLayout />}>
-        <Route index element={<Dashboard/>} />
-          <Route path="announcements" element={<AnnouncementsPage/>}/>
-        </Route>
+        <Route index element={<Dashboard />} />
+        <Route path="announcement" element={<AnnouncementsPage />} />
+        {/* You can add more nested routes here, like: */}
+        <Route path="schools" element={<SchoolPage />} />
+        {/* <Route path="teachers" element={<TeachersPage />} /> */}
+      </Route>
 
-      {/* Fallback route */}
+      {/* Catch-All Route */}
       <Route path="*" element={<div>404 Not Found</div>} />
     </Routes>
   );

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import api from '../../utils/api';
-// import Modal from '../components/Modal'; // You can build this or use any modal library
 import io from 'socket.io-client';
 import Modal from '../Modal';
+import toast, { Toaster } from 'react-hot-toast';
 
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
@@ -21,6 +21,8 @@ const AnnouncementsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: '',
     message: '',
@@ -48,7 +50,7 @@ const AnnouncementsPage: React.FC = () => {
   useEffect(() => {
     socket.on('new_announcement', (data) => {
       if (data.school_id === school_id) {
-        alert(`📢 New Announcement: ${data.title}`);
+        toast(`📢 New Announcement: ${data.title}`, { icon: '📢' });
         fetchAnnouncements();
       }
     });
@@ -58,30 +60,62 @@ const AnnouncementsPage: React.FC = () => {
     };
   }, []);
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     const formData = new FormData();
     formData.append('title', newAnnouncement.title);
     formData.append('message', newAnnouncement.message);
     formData.append('school_id', school_id || '');
+
     if (newAnnouncement.file) {
       formData.append('file', newAnnouncement.file);
     }
 
-    await api.post('/announcements', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    try {
+      if (editingId) {
+        await api.put(`/announcements/${editingId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('Announcement updated!');
+      } else {
+        await api.post('/announcements', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('Announcement posted!');
+      }
 
-    setShowModal(false);
-    setNewAnnouncement({ title: '', message: '', file: null });
-    fetchAnnouncements();
+      setShowModal(false);
+      setNewAnnouncement({ title: '', message: '', file: null });
+      setEditingId(null);
+      fetchAnnouncements();
+    } catch (err) {
+      toast.error('Something went wrong!');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const confirm = window.confirm('Are you sure you want to delete this announcement?');
+    if (!confirm) return;
+
+    try {
+      await api.delete(`/announcements/${id}`);
+      toast.success('Announcement deleted');
+      fetchAnnouncements();
+    } catch (err) {
+      toast.error('Delete failed');
+    }
   };
 
   return (
     <div className="p-6">
+      <Toaster />
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">📣 Announcements</h1>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setShowModal(true);
+            setEditingId(null);
+            setNewAnnouncement({ title: '', message: '', file: null });
+          }}
           className="bg-orange-500 text-white px-4 py-2 rounded"
         >
           <Plus size={16} className="inline mr-1" /> New Announcement
@@ -107,7 +141,9 @@ const AnnouncementsPage: React.FC = () => {
           >
             <div className="flex justify-between items-center">
               <h2 className="font-semibold text-lg">{a.title}</h2>
-              <span className="text-sm text-gray-500">{new Date(a.createdAt).toLocaleString()}</span>
+              <span className="text-sm text-gray-500">
+                {new Date(a.createdAt).toLocaleString()}
+              </span>
             </div>
             <p className="mt-2 text-gray-700 dark:text-gray-200">{a.message}</p>
             {a.media && (
@@ -118,6 +154,29 @@ const AnnouncementsPage: React.FC = () => {
               />
             )}
             <p className="text-sm mt-2 text-gray-500">Posted by: {a.author?.full_name}</p>
+
+            <div className="flex gap-4 mt-3 text-sm">
+              <button
+                className="text-blue-600 hover:underline"
+                onClick={() => {
+                  setEditingId(a.id);
+                  setNewAnnouncement({
+                    title: a.title,
+                    message: a.message,
+                    file: null,
+                  });
+                  setShowModal(true);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className="text-red-600 hover:underline"
+                onClick={() => handleDelete(a.id)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -142,9 +201,14 @@ const AnnouncementsPage: React.FC = () => {
 
       {/* Modal */}
       {showModal && (
-        <Modal onClose={() => setShowModal(false)}>
+        <Modal onClose={() => {
+          setShowModal(false);
+          setEditingId(null);
+        }}>
           <div className="p-4">
-            <h2 className="text-lg font-bold mb-4">Create Announcement</h2>
+            <h2 className="text-lg font-bold mb-4">
+              {editingId ? 'Edit Announcement' : 'Create Announcement'}
+            </h2>
             <input
               type="text"
               placeholder="Title"
@@ -166,21 +230,27 @@ const AnnouncementsPage: React.FC = () => {
               type="file"
               className="mb-4"
               onChange={(e) =>
-                setNewAnnouncement({ ...newAnnouncement, file: e.target.files?.[0] || null })
+                setNewAnnouncement({
+                  ...newAnnouncement,
+                  file: e.target.files?.[0] || null,
+                })
               }
             />
             <div className="flex justify-end gap-2">
               <button
                 className="bg-gray-400 text-white px-4 py-2 rounded"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingId(null);
+                }}
               >
                 Cancel
               </button>
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded"
-                onClick={handleCreate}
+                onClick={handleSubmit}
               >
-                Post
+                {editingId ? 'Update' : 'Post'}
               </button>
             </div>
           </div>
