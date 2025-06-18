@@ -199,9 +199,6 @@ const Navbar: React.FC = () => {
               className="w-10 h-10 rounded-full cursor-pointer border"
               onClick={() => setShowProfile((prev) => !prev)}
               onMouseEnter={() => setShowProfile(true)}
-              onMouseLeave={() => setShowProfile(false)}
-              loading="lazy"
-              decoding="async"
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-gray-300 animate-pulse" />

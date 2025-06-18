@@ -32,26 +32,29 @@ const SchoolManagement: React.FC = () => {
   const [page, setPage] = useState(1);
   const limit = 5;
 
-  const fetchSchools = async () => {
+   const fetchSchools = async () => {
     try {
-      const res = await api.get('/schools');
-      let filtered = res.data;
-
-      if (search) {
-        filtered = filtered.filter((s: School) =>
-          s.name.toLowerCase().includes(search.toLowerCase())
-        );
+      let res;
+      if (search.trim() === '') {
+        res = await api.get('/schools');
+      } else {
+        res = await api.get(`/schools/search?query=${encodeURIComponent(search)}`);
       }
+
+      let filtered = res.data;
       if (activeOnly) {
         filtered = filtered.filter((s: School) => s.isActive);
       }
-
       setSchools(filtered);
     } catch (error) {
       console.error(error);
       toast.error('Failed to fetch schools');
     }
   };
+
+  useEffect(() => {
+    fetchSchools();
+  }, [search, activeOnly]);
 
   useEffect(() => {
     fetchSchools();
@@ -172,7 +175,7 @@ const SchoolManagement: React.FC = () => {
               <td className="p-3">
                 {school.logo_url && (
                   <img
-                    src={`http://localhost:5000/uploads/schoolAdmins/${school.logo_url}`}
+                    src={`http://localhost:8000/uploads/schools/${school.logo_url}`}
                     alt="logo"
                     className="w-10 h-10 rounded-full"
                   />
