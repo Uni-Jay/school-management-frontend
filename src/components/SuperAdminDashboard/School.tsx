@@ -56,9 +56,6 @@ const SchoolManagement: React.FC = () => {
     fetchSchools();
   }, [search, activeOnly]);
 
-  useEffect(() => {
-    fetchSchools();
-  }, [search, activeOnly]);
 
   const handleSubmit = async () => {
     try {

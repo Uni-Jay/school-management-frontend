@@ -5,6 +5,7 @@ import SuperAdminLayout from "../pages/SuperAdminLayout";
 import Dashboard from "../components/SuperAdminDashboard/Dashboard";
 import AnnouncementsPage from "../components/SuperAdminDashboard/Announcement";
 import SchoolPage from "../components/SuperAdminDashboard/School";
+import SchoolSuperAdminManagement from "../components/SuperAdminDashboard/SchoolSuperAdmin";
 
 const AppRoutes = () => {
   return (
@@ -18,6 +19,7 @@ const AppRoutes = () => {
         <Route path="announcement" element={<AnnouncementsPage />} />
         {/* You can add more nested routes here, like: */}
         <Route path="schools" element={<SchoolPage />} />
+        <Route path="school_super_admin" element={<SchoolSuperAdminManagement/>}/>
         {/* <Route path="teachers" element={<TeachersPage />} /> */}
       </Route>
 

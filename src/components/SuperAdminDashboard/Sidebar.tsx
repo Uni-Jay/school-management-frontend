@@ -38,6 +38,8 @@ interface SidebarProps {
 const defaultNavItems: NavItem[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/super-admin" },
   { label: "Schools", icon: <Users size={20} />, path: "/super-admin/schools" },
+  {label: "School Super Admin", icon: <Users size={20} />, path: "/super-admin/school_super_admin"},
+  { label: "School Admins", icon: <Users size={20} />, path: "/super-admin/school_admins" },
   { label: "Parents", icon: <Users size={20} />, path: "/super-admin/parents" },
   { label: "Teachers", icon: <UserPlus size={20} />, path: "/super-admin/teachers" },
   { label: "Students", icon: <GraduationCap size={20} />, path: "/super-admin/students" },
