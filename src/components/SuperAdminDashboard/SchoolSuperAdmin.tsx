@@ -37,20 +37,28 @@ const SchoolSuperAdminManagement: React.FC = () => {
   const [editModeId, setEditModeId] = useState<number | null>(null);
   const [selectedAdmin, setSelectedAdmin] = useState<SuperAdmin | null>(null);
   const [search, setSearch] = useState('');
+  const [genderFilter, setGenderFilter] = useState<string | null>(null);
 
-  const fetchAdmins = async () => {
-    try {
-      let url = '/schoolsuperadmins';
-      if (search) {
-        url = `schoolsuperadmins/search/SchoolName?query=AdminName&search=${search}`;
-      }
-      const res = await api.get(url);
-      setAdmins(res.data);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to fetch School Super Admins');
+ const fetchAdmins = async () => {
+  try {
+    let url = '/schoolSuperAdmins';
+    const params = new URLSearchParams();
+
+    if (search || genderFilter) {
+      url = '/schoolSuperAdmins/search';
+      if (search) params.append('query', search);
+      if (genderFilter) params.append('gender', genderFilter);
     }
-  };
+
+    const res = await api.get(`${url}?${params.toString()}`);
+    setAdmins(res.data);
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to fetch School Super Admins');
+  }
+};
+
+
 
   useEffect(() => {
     fetchAdmins();
@@ -135,16 +143,33 @@ const SchoolSuperAdminManagement: React.FC = () => {
           <Plus size={18} /> Add Super Admin
         </button>
       </div>
+<div className="flex flex-wrap gap-2 mb-4">
+  <input
+    type="text"
+    placeholder="Search by name, email, or school"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border p-2 w-full md:w-1/3"
+  />
+  <select
+    value={genderFilter || ''}
+    onChange={(e) => setGenderFilter(e.target.value || null)}
+    className="border p-2 w-full md:w-1/4"
+  >
+    <option value="">All Genders</option>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+  <button
+    onClick={fetchAdmins}
+    className="bg-blue-500 text-white px-4 py-2 rounded"
+  >
+    Search
+  </button>
+</div>
 
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search by name or email"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 w-full md:w-1/3"
-        />
-      </div>
+    
+
 
       <div className="overflow-x-auto">
         <table className="w-full border">
@@ -155,6 +180,7 @@ const SchoolSuperAdminManagement: React.FC = () => {
               <th className="p-3 text-left">Email</th>
               <th className="p-3 text-left">School</th>
               <th className="p-3 text-left">Phone</th>
+              <th className="p-3 text-left">Gender</th>
               <th className="p-3 text-right w-full">Actions</th>
             </tr>
           </thead>
@@ -174,6 +200,7 @@ const SchoolSuperAdminManagement: React.FC = () => {
                 <td className="p-3">{admin.user.email}</td>
                 <td className="p-3">{admin.school.name}</td>
                 <td className="p-3">{admin.phone}</td>
+                <td className="p-3">{admin.gender}</td>
                 <td className=" text-right gap-4">
                   <button onClick={() => handleView(admin)} className="text-indigo-600">
                     <Eye size={18} />
